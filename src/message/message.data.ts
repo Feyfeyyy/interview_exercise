@@ -42,7 +42,6 @@ export class MessageData {
     return chatMessageToObject(message);
   }
 
-
   async getChatConversationMessages(
     data: GetMessageDto,
   ): Promise<PaginatedChatMessages> {
@@ -88,8 +87,24 @@ export class MessageData {
   }
 
   async delete(messageId: ObjectID): Promise<ChatMessage> {
-    // TODO allow a message to be marked as deleted
-    return new ChatMessage() // Minimum to pass ts checks -replace this
+    // Missing delete function to allow a message to be marked as deleted
+    // Solution: Mongoose method to find message and update to returns instance, which now contains the updated message data.
+    const result = await this.chatMessageModel.findByIdAndUpdate(
+      messageId,
+      { deleted: true },
+      { new: true },
+    );
+
+    if (!result) {
+      throw new Error('Message not found');
+    }
+
+    const deletedMessage = new ChatMessage();
+    deletedMessage.id = result._id.toHexString();
+    deletedMessage.text = result.text;
+    deletedMessage.deleted = result.deleted;
+
+    return deletedMessage;
   }
 
   async resolve(messageId: ObjectID): Promise<ChatMessage> {
